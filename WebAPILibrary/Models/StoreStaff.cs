@@ -1,11 +1,12 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace VideoGameRentalStore
+namespace WebAPILibrary.Models
 {
-    public class StoreStaff
+    class StoreStaff
     {
         public string staffID { get; set; }
         public string staffPassword { get; set; }
@@ -13,11 +14,8 @@ namespace VideoGameRentalStore
         public string staffPhone { get; set; }
         public string staffAddress { get; set; }
         public string staffEmail { get; set; }
-        public StoreStaff()
-        {
 
-        }
-        public StoreStaff(string id, string password, string name, string phone, string address, string email)
+        internal StoreStaff(string id, string password, string name, string phone, string address, string email)
         {
             staffID = id;
             staffPassword = password;
@@ -25,6 +23,6 @@ namespace VideoGameRentalStore
             staffPhone = phone;
             staffAddress = address;
             staffEmail = email;
-        }        
+        }
     }
 }

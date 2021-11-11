@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace VideoGameRentalStore
+namespace WebAPILibrary.Models
 {
-    public class User
+    class User
     {
         public string userID { get; set; }
         public string userPassword { get; set; }
         public string userName { get; set; }
         public string userPhone { get; set; }
         public string userAddress { get; set; }
-        public string userEmail { get; set; }     
-        public User()
-        {
-
-        }
-        public User(string id, string password, string name, string phone, string address, string email)
+        public string userEmail { get; set; }
+        internal User(string id, string password, string name, string phone, string address, string email)
         {
             userID = id;
             userPassword = password;
@@ -24,6 +22,6 @@ namespace VideoGameRentalStore
             userPhone = phone;
             userAddress = address;
             userEmail = email;
-        } 
+        }
     }
 }

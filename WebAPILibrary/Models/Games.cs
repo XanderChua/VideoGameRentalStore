@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace VideoGameRentalStore
+namespace WebAPILibrary.Models
 {
-    public class Games
+    class Games
     {
         public string gamesID { get; set; }
         public string gamesName { get; set; }
@@ -13,11 +15,7 @@ namespace VideoGameRentalStore
         public string rentedBy { get; set; }
         public string rentedDate { get; set; }
         public string returnByDate { get; set; }
-        public Games()
-        {
-     
-        }
-        public Games(string id, string name, string price, string status, string rent, string rd, string rbd)
+        internal Games(string id, string name, string price, string status, string rent, string rd, string rbd)
         {
             gamesID = id;
             gamesName = name;
@@ -26,6 +24,6 @@ namespace VideoGameRentalStore
             rentedBy = rent;
             rentedDate = rd;
             returnByDate = rbd;
-        }       
+        }
     }
 }

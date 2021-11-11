@@ -1,9 +1,9 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Web;
 
-namespace VideoGameRentalStore
+namespace WebAPI.Models
 {
     public class StoreStaff
     {
@@ -25,6 +25,26 @@ namespace VideoGameRentalStore
             staffPhone = phone;
             staffAddress = address;
             staffEmail = email;
-        }        
+        }
+        public void UpdatePassword(string password)
+        {
+            staffPassword = password;
+        }
+        public void UpdateName(string name)
+        {
+            staffName = name;
+        }
+        public void UpdatePhone(string phone)
+        {
+            staffPhone = phone;
+        }
+        public void UpdateAddress(string address)
+        {
+            staffAddress = address;
+        }
+        public void UpdateEmail(string email)
+        {
+            staffEmail = email;
+        }
     }
 }

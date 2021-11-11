@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Web;
 
-namespace VideoGameRentalStore
+namespace WebAPI.Models
 {
     public class User
     {
@@ -11,7 +12,7 @@ namespace VideoGameRentalStore
         public string userName { get; set; }
         public string userPhone { get; set; }
         public string userAddress { get; set; }
-        public string userEmail { get; set; }     
+        public string userEmail { get; set; }
         public User()
         {
 
@@ -24,6 +25,6 @@ namespace VideoGameRentalStore
             userPhone = phone;
             userAddress = address;
             userEmail = email;
-        } 
+        }
     }
 }

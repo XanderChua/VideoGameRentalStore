@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Web;
 
-namespace VideoGameRentalStore
+namespace WebAPI.Models
 {
     public class Games
     {
@@ -15,7 +16,7 @@ namespace VideoGameRentalStore
         public string returnByDate { get; set; }
         public Games()
         {
-     
+
         }
         public Games(string id, string name, string price, string status, string rent, string rd, string rbd)
         {
@@ -26,6 +27,6 @@ namespace VideoGameRentalStore
             rentedBy = rent;
             rentedDate = rd;
             returnByDate = rbd;
-        }       
+        }
     }
 }
