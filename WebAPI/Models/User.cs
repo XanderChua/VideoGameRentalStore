@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebAPI.Models
 {
+    [Table("UserTable")]
     public class User
     {
+        [Key]
         public string userID { get; set; }
         public string userPassword { get; set; }
         public string userName { get; set; }

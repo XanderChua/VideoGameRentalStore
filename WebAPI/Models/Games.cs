@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebAPI.Models
 {
+    [Table("GamesTable")]
     public class Games
     {
+        [Key]
         public string gamesID { get; set; }
         public string gamesName { get; set; }
         public string gameRentPrice { get; set; }
@@ -27,6 +31,22 @@ namespace WebAPI.Models
             rentedBy = rent;
             rentedDate = rd;
             returnByDate = rbd;
+        }
+        public void UpdateRentStatus(string status)
+        {
+            rentedStatus = status;
+        }
+        public void UpdateRentedBy(string rentedby)
+        {
+            rentedBy = rentedby;
+        }
+        public void UpdateRentedDate(string rentdate)
+        {
+            rentedDate = rentdate;
+        }
+        public void UpdateReturnByDate(string returndate)
+        {
+            returnByDate = returndate;
         }
     }
 }

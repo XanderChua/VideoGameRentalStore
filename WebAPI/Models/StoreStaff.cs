@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebAPI.Models
 {
+    [Table("StoreStaffTable")]
     public class StoreStaff
     {
+        [Key]
         public string staffID { get; set; }
         public string staffPassword { get; set; }
         public string staffName { get; set; }

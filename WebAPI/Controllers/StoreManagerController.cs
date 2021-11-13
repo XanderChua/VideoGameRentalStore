@@ -7,83 +7,130 @@ using System.Web.Http;
 using WebAPI.Models;
 using Newtonsoft.Json;
 using System.IO;
-
+using WebAPI.EntityFramework;
+using VideoGameRental.Common.DTO;
+using System.Collections.ObjectModel;
 
 namespace WebAPI.Controllers
 {
     [RoutePrefix("api/StoreManager")]
     public class StoreManagerController : ApiController
     {
-        private string readStaff;
-        public Dictionary<string, StoreStaff> storeStaffs = new Dictionary<string, StoreStaff>();
-        private string readUser;
-        public Dictionary<string, User> storeUsers = new Dictionary<string, User>();
-        private string readGames;
-        public Dictionary<string, Games> storeGames = new Dictionary<string, Games>();
-
+        private string readEarned;
+        public List<double> storeEarned = new List<double>();
         private void Initialize()
         {
-            readStaff = File.ReadAllText("StoreStaff.json");
-            storeStaffs = JsonConvert.DeserializeObject<Dictionary<string, StoreStaff>>(readStaff);
-            readUser = File.ReadAllText("StoreUser.json");
-            storeUsers = JsonConvert.DeserializeObject<Dictionary<string, User>>(readUser);
-            readGames = File.ReadAllText("StoreGames.json");
-            storeGames = JsonConvert.DeserializeObject<Dictionary<string, Games>>(readGames);
+            readEarned = File.ReadAllText("StoreEarned.json");
+            storeEarned = JsonConvert.DeserializeObject<List<double>>(readEarned);
         }
-        private void Update()//run VS as administrator
-        {
-            string storeStaffJson = JsonConvert.SerializeObject(storeStaffs);
-            File.WriteAllText("StoreStaff.json", storeStaffJson);
-            string storeGamesJson = JsonConvert.SerializeObject(storeGames);
-            File.WriteAllText("StoreStaff.json", storeGamesJson);
-        }
+
+        VideoGameRentalStoreContext videoGameRentalStoreContext = new VideoGameRentalStoreContext();
 
         [HttpPost]
         [Route("AddStaff")]
-        public Dictionary<string, StoreStaff> AddStaff(string id, string password, string name, string phone, string address, string email)
+        public StoreStaffDTO AddStaff(StoreStaffDTO storeStaff)
         {
-            Initialize();
-            storeStaffs.Add(id, new StoreStaff(id, password, name, phone, address, email));
-            Update();
-            return storeStaffs;
+            videoGameRentalStoreContext.StoreStaffs.Add(MapToStaffModel(storeStaff));
+            videoGameRentalStoreContext.SaveChanges();
+            return storeStaff;
         }
 
         [HttpPost]
         [Route("AddGames")]
-        public Dictionary<string, Games> AddGames(string id, string name, string price, string rentstatus, string rentby, string rentdate, string returndate)
+        public GamesDTO AddGames(GamesDTO storeGames)
         {
-            Initialize();
-            storeGames.Add(id, new Games(id, name, price, rentstatus, rentby, rentdate, returndate));
-            Update();
+            videoGameRentalStoreContext.Games.Add(MapToGamesModel(storeGames));
+            videoGameRentalStoreContext.SaveChanges();
             return storeGames;
         }
 
         [HttpGet]
         [Route("ListStaff")]
-        public Dictionary<string, StoreStaff> GetAllStaff()
+        public IHttpActionResult GetAllStaff()
         {
-            Initialize();
-            return storeStaffs;
+            ICollection<StoreStaffDTO> dtoList = new Collection<StoreStaffDTO>();
+            foreach (StoreStaff staff in videoGameRentalStoreContext.StoreStaffs)
+            {
+                dtoList.Add(MapToStaffDTO(staff));
+            }              
+            return Ok(dtoList);
         }
 
         [HttpGet]
         [Route("ListUser")]
-        public Dictionary<string, User> GetAllUser()
+        public IHttpActionResult GetAllUser()
         {
-            Initialize();
-            return storeUsers;
+            ICollection<UserDTO> dtoList = new Collection<UserDTO>();
+            foreach (User user in videoGameRentalStoreContext.Users)
+            {
+                dtoList.Add(MapToUserDTO(user));
+            }
+            return Ok(dtoList);
         }
 
         [HttpGet]
-        [Route("ListGames")]
-        public Dictionary<string, Games> GetAllGames()
+        [Route("AvailableGames")]
+        public IHttpActionResult GetAvailableGames()
         {
-            Initialize();
-            return storeGames;
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            foreach (Games games in videoGameRentalStoreContext.Games)
+            {
+                dtoList.Add(MapToGamesDTO(games));
+            }
+            return Ok(dtoList.Where(x => x.rentedStatus == "Not Rented"));
         }
 
-        //GamesRented
-        //OverduedGames
-        //TotalEarned
+        [HttpGet]
+        [Route("GamesRented")]
+        public IHttpActionResult GetRentedGames()
+        {
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            foreach (Games games in videoGameRentalStoreContext.Games)
+            {
+                dtoList.Add(MapToGamesDTO(games));
+            }
+            return Ok(dtoList.Where(x => x.rentedStatus == "Rented"));
+        }
+
+        [HttpGet]
+        [Route("OverduedGames")]
+        public IHttpActionResult GetOverduedGames(Games storeGames, DateTime dateTime)
+        {
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            DateTime convertedReturnDate = DateTime.Parse(storeGames.returnByDate + " 12:00:00 AM");
+            double daysLate = ((dateTime - convertedReturnDate).TotalDays);
+            return Ok(videoGameRentalStoreContext.Games.Where(x => x.returnByDate != "" && daysLate > 0));
+        }
+
+        [HttpGet]
+        [Route("TotalEarned")]
+        public IHttpActionResult GetTotalEarned()
+        {
+            Initialize();
+            double earnedProfit = storeEarned.Sum();
+            return Ok(earnedProfit);
+        }
+
+        private StoreStaffDTO MapToStaffDTO(StoreStaff storeStaff)
+        {
+            return new StoreStaffDTO(storeStaff.staffID, storeStaff.staffPassword, storeStaff.staffName, storeStaff.staffPhone, storeStaff.staffAddress, storeStaff.staffEmail);
+        }
+        private StoreStaff MapToStaffModel(StoreStaffDTO storeStaffDto)
+        {
+            return new StoreStaff(storeStaffDto.staffID, storeStaffDto.staffPassword, storeStaffDto.staffName, storeStaffDto.staffPhone, storeStaffDto.staffAddress, storeStaffDto.staffEmail);
+        }
+        private GamesDTO MapToGamesDTO(Games storeGames)
+        {
+            return new GamesDTO(storeGames.gamesID, storeGames.gamesName, storeGames.gameRentPrice, storeGames.rentedStatus, storeGames.rentedBy, storeGames.rentedDate, storeGames.returnByDate);
+        }
+        private Games MapToGamesModel(GamesDTO storeGamesDto)
+        {
+            return new Games(storeGamesDto.gamesID, storeGamesDto.gamesName, storeGamesDto.gameRentPrice, storeGamesDto.rentedStatus, storeGamesDto.rentedBy, storeGamesDto.rentedDate, storeGamesDto.returnByDate);
+        }
+        private UserDTO MapToUserDTO(User storeUser)
+        {
+            return new UserDTO(storeUser.userID, storeUser.userPassword, storeUser.userName, storeUser.userPhone, storeUser.userAddress, storeUser.userEmail);
+        }
+        
     }
 }

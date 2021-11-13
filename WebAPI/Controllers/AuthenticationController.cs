@@ -7,55 +7,55 @@ using System.Web.Http;
 using WebAPI.Models;
 using Newtonsoft.Json;
 using System.IO;
+using WebAPI.EntityFramework;
+using VideoGameRental.Common.DTO;
+using System.Collections.ObjectModel;
 
 namespace WebAPI.Controllers
 {
     [RoutePrefix("api/Login")]
     public class AuthenticationController : ApiController
     {
-        private string readStaff;
-        public Dictionary<string, StoreStaff> storeStaffs = new Dictionary<string, StoreStaff>();
-        private string readUser;
-        public Dictionary<string, User> storeUsers = new Dictionary<string, User>();
-
-        private void Initialize()
-        {
-            readStaff = File.ReadAllText("StoreStaff.json");
-            storeStaffs = JsonConvert.DeserializeObject<Dictionary<string, StoreStaff>>(readStaff);
-            readUser = File.ReadAllText("StoreUser.json");
-            storeUsers = JsonConvert.DeserializeObject<Dictionary<string, User>>(readUser);
-        }
+        VideoGameRentalStoreContext videoGameRentalStoreContext = new VideoGameRentalStoreContext();
 
         [HttpGet]
         [Route("VerifyStaff")]
-        public StoreStaff LoginStaff(string id, string password)
+        public bool ValidateStaff(string id, string password)
         {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if ((existingStaff.staffID == id) && (existingStaff.staffPassword == password))
+            ICollection<StoreStaffDTO> dtoList = new Collection<StoreStaffDTO>();
+            foreach (StoreStaff staff in videoGameRentalStoreContext.StoreStaffs)
             {
-                return storeStaffs[id];
+                dtoList.Add(MapToStaffDTO(staff));
+                if(dtoList.Any(entry => entry.staffID != id && entry.staffPassword != password))
+                {
+                    return false;
+                }
             }
-            else
-            {
-                return null;
-            }          
+            return true;
         }
 
         [HttpGet]
         [Route("VerifyUser")]
-        public User LoginUser(string id, string password)
+        public bool ValidateUser(string id, string password)
         {
-            Initialize();
-            User existingUser = storeUsers[id];
-            if ((existingUser.userID == id) && (existingUser.userPassword == password))
+            ICollection<UserDTO> dtoList = new Collection<UserDTO>();
+            foreach (User user in videoGameRentalStoreContext.Users)
             {
-                return storeUsers[id];
+                dtoList.Add(MapToUserDTO(user));
+                if (dtoList.Any(entry => entry.userID != id && entry.userPassword != password))
+                {
+                    return false;
+                }
             }
-            else
-            {
-                return null;
-            }
+            return true;
+        }
+        private StoreStaffDTO MapToStaffDTO(StoreStaff storeStaff)
+        {
+            return new StoreStaffDTO(storeStaff.staffID, storeStaff.staffPassword, storeStaff.staffName, storeStaff.staffPhone, storeStaff.staffAddress, storeStaff.staffEmail);
+        }
+        private UserDTO MapToUserDTO(User storeUser)
+        {
+            return new UserDTO(storeUser.userID, storeUser.userPassword, storeUser.userName, storeUser.userPhone, storeUser.userAddress, storeUser.userEmail);
         }
     }
 }

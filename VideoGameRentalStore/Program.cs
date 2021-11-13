@@ -1,23 +1,24 @@
 ﻿using System;
-using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
+using VideoGameRental.Common.DTO;
+using VideoGameRentalStore.Interfaces;
+using VideoGameRentalStore.ViewModel;
 
 namespace VideoGameRentalStore
 {
     public class Program
     {
         private readonly IConsoleIO ConsoleIO;
-        private static StoreManager storeManager;
+        private static IVideoGameRentalViewModel vm;
         public Program(IConsoleIO consoleIO)
         {
             ConsoleIO = consoleIO;
         }
         static void Main(string[] args)
         {
-            storeManager = new StoreManager();
-            storeManager.Initialize();
+            vm = new VideoGameRentalViewModel();
+            vm.Initialize();
             string readUser = File.ReadAllText("StoreUser.json");
             DateTime dt = DateTime.Now;
             bool loop = true;
@@ -40,13 +41,13 @@ namespace VideoGameRentalStore
                         string password = Console.ReadLine();
                         if (inputID == "000" && password == "super")
                         {
-                            PerformOperationsStoreManager(dt);                          
+                            PerformOperationsvm(dt);                          
                         }
-                        else if (storeManager.ValidateStaff(inputID, password) == true)
+                        else if (vm.ValidateStaff(inputID, password) == true)
                         {
                             PerformOperationsStoreStaff(inputID);                           
                         }
-                        else if (storeManager.ValidateUser(inputID, password) == true)
+                        else if (vm.ValidateUser(inputID, password) == true)
                         {
                             PerformOperationsUser(inputID, dt);
                         }
@@ -93,11 +94,8 @@ namespace VideoGameRentalStore
             ConsoleIO.WriteLine("Login test success!");
         }
 
-        public static void PerformOperationsStoreManager(DateTime dateTime)
+        public static void PerformOperationsvm(DateTime dateTime)
         {
-            StoreStaff storeStaff = new StoreStaff();
-            Games games = new Games();
-            User user = new User();
             bool loop = true;
             while (loop)
             {
@@ -113,8 +111,8 @@ namespace VideoGameRentalStore
                 Console.WriteLine("9. Exit");
                 try
                 {
-                    int inputStoreManagerOption = Int32.Parse(Console.ReadLine());
-                    if (inputStoreManagerOption == 1)
+                    int inputvmOption = Int32.Parse(Console.ReadLine());
+                    if (inputvmOption == 1)
                     {
                         Console.WriteLine("Create Staff ID:");
                         string inputStaffID = Console.ReadLine();
@@ -128,9 +126,9 @@ namespace VideoGameRentalStore
                         string inputStaffAddress = Console.ReadLine();
                         Console.WriteLine("Create Staff Email:");
                         string inputStaffEmail = Console.ReadLine();
-                        storeManager.AddStoreStaff(inputStaffID, inputStaffPassword, inputStaffName, inputStaffPhone, inputStaffAddress, inputStaffEmail);
+                        vm.AddStaff(inputStaffID, inputStaffPassword, inputStaffName, inputStaffPhone, inputStaffAddress, inputStaffEmail);
                     }
-                    else if (inputStoreManagerOption == 2)
+                    else if (inputvmOption == 2)
                     {
                         Console.WriteLine("Create Games ID:");
                         string inputGamesID = Console.ReadLine();
@@ -138,39 +136,39 @@ namespace VideoGameRentalStore
                         string inputGamesName = Console.ReadLine();
                         Console.WriteLine("Enter Price:");
                         string rentPrice = Console.ReadLine();
-                        storeManager.AddGames(inputGamesID, inputGamesName, rentPrice);
+                        vm.AddGames(inputGamesID, inputGamesName, rentPrice);
                     }
-                    else if (inputStoreManagerOption == 3)
+                    else if (inputvmOption == 3)
                     {
-                        storeManager.ListStaff();
+                        vm.ListStaff();
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 4)
+                    else if (inputvmOption == 4)
                     {
-                        storeManager.ListUser();
+                        vm.ListUser();
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 5)
+                    else if (inputvmOption == 5)
                     {
-                        storeManager.GamesAvailable();
+                        vm.GamesAvailable();
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 6)
+                    else if (inputvmOption == 6)
                     {
-                        storeManager.GamesRented();
+                        vm.RentedGames();
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 7)
+                    else if (inputvmOption == 7)
                     {
-                        storeManager.OverduedGames(dateTime, games);
+                        vm.OverduedGames(dateTime);
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 8)
+                    else if (inputvmOption == 8)
                     {
-                        storeManager.TotalEarned();
+                        vm.TotalEarned();
                         Console.WriteLine("\n");
                     }
-                    else if (inputStoreManagerOption == 9)
+                    else if (inputvmOption == 9)
                     {
                         loop = false;
                     }
@@ -187,12 +185,17 @@ namespace VideoGameRentalStore
         }
         public static void PerformOperationsStoreStaff(string id)
         {
-            Games games = new Games();
-            User user = new User();
             bool loop = true;
+            ICollection<StoreStaffDTO> staffCollection = vm.ListStaff();
             while (loop)
             {
-                Console.WriteLine("Welcome " + id + ", " + storeManager.StaffDictObj[id].staffName);
+                foreach (var name in staffCollection)
+                {
+                    if (name.staffID == id)
+                    {
+                        Console.WriteLine("Welcome " + name.staffID + ", " + name.staffName);
+                    }
+                }
                 Console.WriteLine("--Store Staff Page--");
                 Console.WriteLine("1. Add User");
                 Console.WriteLine("2. Games Available");
@@ -216,23 +219,23 @@ namespace VideoGameRentalStore
                         string inputUserEmail = Console.ReadLine();
                         Console.WriteLine("Create User Email:");
                         string inputUserAddress = Console.ReadLine();
-                        storeManager.AddUser(user, inputUserID, inputUserPassword, inputUserName, inputUserPhone, inputUserAddress, inputUserEmail);
+                        vm.AddUser(inputUserID, inputUserPassword, inputUserName, inputUserPhone, inputUserAddress, inputUserEmail);
                     }
                     else if (inputStoreStaffOption == 2)
                     {
-                        storeManager.GamesAvailable();
+                        vm.GamesAvailable();
                     }
                     else if (inputStoreStaffOption == 3)
                     {
                         Console.WriteLine("Enter Game ID:");
                         string searchUserByGames = Console.ReadLine();
-                        storeManager.SearchUserByGames(games, searchUserByGames);
+                        vm.SearchUser(searchUserByGames);
                     }
                     else if (inputStoreStaffOption == 4)
                     {
                         Console.WriteLine("Enter User ID:");
                         string searchGamesByUser = Console.ReadLine();
-                        storeManager.SearchGamesByUser(games, searchGamesByUser);
+                        vm.SearchGame(searchGamesByUser);
                     }
                     else if (inputStoreStaffOption == 5)
                     {
@@ -252,9 +255,16 @@ namespace VideoGameRentalStore
         public static void PerformOperationsUser(string id, DateTime dateTime)
         {
             bool loop = true;
+            ICollection<UserDTO> userCollection = vm.ListUser();
             while (loop)
             {
-                Console.WriteLine("Welcome " + id + ", " + storeManager.UserDictObj[id].userName);
+                foreach(var name in userCollection)
+                {
+                    if(name.userID == id)
+                    {
+                        Console.WriteLine("Welcome " + name.userID + ", " + name.userName);
+                    }
+                }               
                 Console.WriteLine("--User Page--");
                 Console.WriteLine("1. Rent Game");
                 Console.WriteLine("2. Return Game");
@@ -266,32 +276,34 @@ namespace VideoGameRentalStore
                     if (inputStoreUser == 1)
                     {
                         Console.WriteLine("Enter game ID to rent:");
-                        foreach (var game in storeManager.GamesDictObj)
+                        ICollection<GamesDTO> gameCollection= vm.GamesAvailable();
+                        foreach (var game in gameCollection)
                         {
-                            if (game.Value.rentedStatus == "Not Rented")
+                            if (game.rentedStatus == "Not Rented")
                             {
-                                Console.WriteLine("Game ID: " + game.Key + "\nGame Name: " + game.Value.gamesName + " Price: " + game.Value.gameRentPrice);
+                                Console.WriteLine("Game ID: " + game.gamesID + "\nGame Name: " + game.gamesName + " Price: " + game.gameRentPrice);
                             }
                         }
                         string selectGameRent = Console.ReadLine();
-                        storeManager.RentGames(id, dateTime, selectGameRent);
+                        vm.Rent(id, dateTime, selectGameRent);
                     }
                     else if (inputStoreUser == 2)
                     {
                         Console.WriteLine("Enter game ID to return:");
-                        foreach (var rentedgame in storeManager.GamesDictObj)
+                        ICollection<GamesDTO> gameCollection = vm.RentedGames();
+                        foreach (var rentedgame in gameCollection)
                         {
-                            if (rentedgame.Value.rentedStatus == "Rented" && rentedgame.Value.rentedBy == id)
+                            if (rentedgame.rentedStatus == "Rented" && rentedgame.rentedBy == id)
                             {
-                                Console.WriteLine("Game ID: " + rentedgame.Key + "\nGame Name: " + rentedgame.Value.gamesName);
+                                Console.WriteLine("Game ID: " + rentedgame.gamesID + "\nGame Name: " + rentedgame.gamesName);
                             }
                         }
                         string selectGameReturn = Console.ReadLine();
-                        storeManager.ReturnGames(id, dateTime, selectGameReturn);
+                        vm.Return(id, dateTime, selectGameReturn);
                     }
                     else if (inputStoreUser == 3)
                     {
-                        storeManager.ListRentedGames(id);
+                        vm.ListRentedGames(id);
                         Console.WriteLine("\n");
                     }
                     else if (inputStoreUser == 4)

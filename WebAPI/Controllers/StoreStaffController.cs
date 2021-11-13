@@ -7,231 +7,181 @@ using System.Web.Http;
 using WebAPI.Models;
 using Newtonsoft.Json;
 using System.IO;
+using WebAPI.EntityFramework;
+using VideoGameRental.Common.DTO;
+using System.Collections.ObjectModel;
 
 namespace WebAPI.Controllers
 {
     [RoutePrefix("api/StoreStaffManager")]
     public class StoreStaffController : ApiController
     {
-        private string readStaff;
-        public Dictionary<string, StoreStaff> storeStaffs = new Dictionary<string, StoreStaff>();
-        private string readUser;
-        public Dictionary<string, User> storeUsers = new Dictionary<string, User>();
-        private string readGames;
-        public Dictionary<string, Games> storeGames = new Dictionary<string, Games>();
-
-        private void Initialize()
-        {
-            readStaff = File.ReadAllText("StoreStaff.json");
-            storeStaffs = JsonConvert.DeserializeObject<Dictionary<string, StoreStaff>>(readStaff);
-            readUser = File.ReadAllText("StoreUser.json");
-            storeUsers = JsonConvert.DeserializeObject<Dictionary<string, User>>(readUser);
-            readGames = File.ReadAllText("StoreGames.json");
-            storeGames = JsonConvert.DeserializeObject<Dictionary<string, Games>>(readGames);
-        }
-        private void Update()//run VS as administrator
-        {
-            string storeStaffJson = JsonConvert.SerializeObject(storeStaffs);
-            File.WriteAllText("StoreStaff.json", storeStaffJson);
-            string storeUserJson = JsonConvert.SerializeObject(storeUsers);
-            File.WriteAllText("StoreUser.json", storeUserJson);
-        }
-
-        [HttpGet]
-        [Route("")]
-        public Dictionary<string, StoreStaff> GetAll()
-        {
-            Initialize();
-            return storeStaffs;
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public KeyValuePair<string, StoreStaff> Get(string id)
-        {
-            Initialize();
-            return storeStaffs.Where(x => x.Key.Contains(id)).FirstOrDefault();
-        }
-
-        //[HttpPost]
-        //[Route("AddStaff")]
-        //public Dictionary<string, StoreStaff> AddStaff(string id, string password, string name, string phone, string address, string email)
-        //{
-        //    Initialize();
-        //    storeStaffs.Add(id, new StoreStaff(id, password, name, phone, address, email));
-        //    Update();
-        //    return storeStaffs;
-        //}
+        VideoGameRentalStoreContext videoGameRentalStoreContext = new VideoGameRentalStoreContext();
 
         [HttpPost]
         [Route("AddUser")]
-        public Dictionary<string, User> AddUser(string id, string password, string name, string phone, string address, string email)
+        public UserDTO AddUser(UserDTO storeUser)
         {
-            Initialize();
-            storeUsers.Add(id, new User(id, password, name, phone, address, email));
-            Update();
-            return storeUsers;
+            videoGameRentalStoreContext.Users.Add(MapToUserModel(storeUser));
+            videoGameRentalStoreContext.SaveChanges();
+            return storeUser;
         }
 
         [HttpGet]
         [Route("AvailableGames")]
-        public IDictionary<string, Games> GetAvailableGames()
+        public IHttpActionResult GetAvailableGames()
         {
-            Initialize();
-            IDictionary<string, Games> gameDict = new Dictionary<string, Games>();
-            foreach(KeyValuePair<string,Games> item in storeGames.Where(x => x.Value.rentedStatus == "Not Rented"))
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            foreach (Games games in videoGameRentalStoreContext.Games)
             {
-                gameDict.Add(item);
+                dtoList.Add(MapToGamesDTO(games));
             }
-            return gameDict;
+            return Ok(dtoList.Where(x => x.rentedStatus == "Not Rented"));
         }
-
-        //[HttpGet]
-        //[Route("SearchUser")]
-        //public string SearchUserByGames(string gameid)
-        //{
-        //    Initialize();
-        //    return storeGames[gameid].rentedBy.ToString();
-        //} 
 
         [HttpGet]
         [Route("SearchUser")]
-        public IDictionary<string, Games> SearchUserByGamesRented(string gameid)
+        public IHttpActionResult SearchUserByGamesRented(string gameid)
         {
-            Initialize();
-            IDictionary<string, Games> gameDict = new Dictionary<string, Games>();
-            foreach (KeyValuePair<string, Games> item in storeGames.Where(x => x.Key == gameid))
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            foreach (Games games in videoGameRentalStoreContext.Games)
             {
-                gameDict.Add(item);
+                dtoList.Add(MapToGamesDTO(games));
             }
-            return gameDict;
+            return Ok(dtoList.Where(x => x.gamesID == gameid));
         }
 
         [HttpGet]
         [Route("SearchGames")]
-        public IDictionary<string, Games> SearchGamesRentedByUser(string userid)
+        public IHttpActionResult SearchGamesRentedByUser(string userid)
         {
-            Initialize();
-            IDictionary<string, Games> gameDict = new Dictionary<string, Games>();
-            foreach (KeyValuePair<string, Games> item in storeGames.Where(x => x.Value.rentedBy == userid))
+            ICollection<GamesDTO> dtoList = new Collection<GamesDTO>();
+            foreach (Games games in videoGameRentalStoreContext.Games)
             {
-                gameDict.Add(item);
+                dtoList.Add(MapToGamesDTO(games));
             }
-            return gameDict;
+            return Ok(dtoList.Where(x => x.rentedBy == userid));
         }
+        //[HttpPatch]
+        //[Route("UpdatePassword")]
+        //public Dictionary<string, StoreStaff> UpdatePassword(string id, string password)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff = storeStaffs[id];
+        //    if (existingStaff == null)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        storeStaffs.Remove(id);
+        //        existingStaff.UpdateName(password);
+        //        storeStaffs.Add(id, existingStaff);
+        //        Update();
+        //    }
+        //    return storeStaffs;
+        //}
 
-        [HttpPatch]
-        [Route("UpdatePassword")]
-        public Dictionary<string, StoreStaff> UpdatePassword(string id, string password)
+        //[HttpPatch]
+        //[Route("UpdateName")]
+        //public Dictionary<string, StoreStaff> UpdateName(string id, string name)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff= storeStaffs[id];
+        //    if (existingStaff == null)
+        //    {
+        //        return null;
+        //    }               
+        //    else
+        //    {
+        //        storeStaffs.Remove(id);
+        //        existingStaff.UpdateName(name);
+        //        storeStaffs.Add(id, existingStaff);
+        //        Update();
+        //    }
+        //    return storeStaffs;
+        //}
+
+        //[HttpPatch]
+        //[Route("UpdatePhone")]
+        //public Dictionary<string, StoreStaff> UpdatePhone(string id, string phone)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff = storeStaffs[id];
+        //    if (existingStaff == null)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        storeStaffs.Remove(id);
+        //        existingStaff.UpdatePhone(phone);
+        //        storeStaffs.Add(id, existingStaff);
+        //        Update();
+        //    }
+        //    return storeStaffs;
+        //}
+
+        //[HttpPatch]
+        //[Route("UpdateAddress")]
+        //public Dictionary<string, StoreStaff> UpdateAddress(string id, string address)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff = storeStaffs[id];
+        //    if (existingStaff == null)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        storeStaffs.Remove(id);
+        //        existingStaff.UpdateAddress(address);
+        //        storeStaffs.Add(id, existingStaff);
+        //        Update();
+        //    }
+        //    return storeStaffs;
+        //}
+
+        //[HttpPatch]
+        //[Route("UpdateEmail")]
+        //public Dictionary<string, StoreStaff> UpdateEmail(string id, string email)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff = storeStaffs[id];
+        //    if (existingStaff == null)
+        //    {
+        //        return null;
+        //    }
+        //    else
+        //    {
+        //        storeStaffs.Remove(id);
+        //        existingStaff.UpdateEmail(email);
+        //        storeStaffs.Add(id, existingStaff);
+        //        Update();
+        //    }
+        //    return storeStaffs;
+        //}
+
+        //[HttpDelete]
+        //[Route("DeleteStaff/{id}")]
+        //public Dictionary<string, StoreStaff> Delete(string id)
+        //{
+        //    Initialize();
+        //    StoreStaff existingStaff = storeStaffs[id];
+        //    if (existingStaff != null)
+        //    {
+        //        storeStaffs.Remove(id);
+        //        Update();
+        //    }          
+        //    return storeStaffs;
+        //}
+        private GamesDTO MapToGamesDTO(Games storeGames)
         {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if (existingStaff == null)
-            {
-                return null;
-            }
-            else
-            {
-                storeStaffs.Remove(id);
-                existingStaff.UpdateName(password);
-                storeStaffs.Add(id, existingStaff);
-                Update();
-            }
-            return storeStaffs;
+            return new GamesDTO(storeGames.gamesID, storeGames.gamesName, storeGames.gameRentPrice, storeGames.rentedStatus, storeGames.rentedBy, storeGames.rentedDate, storeGames.returnByDate);
         }
-
-        [HttpPatch]
-        [Route("UpdateName")]
-        public Dictionary<string, StoreStaff> UpdateName(string id, string name)
+        private User MapToUserModel(UserDTO storeUserDto)
         {
-            Initialize();
-            StoreStaff existingStaff= storeStaffs[id];
-            if (existingStaff == null)
-            {
-                return null;
-            }               
-            else
-            {
-                storeStaffs.Remove(id);
-                existingStaff.UpdateName(name);
-                storeStaffs.Add(id, existingStaff);
-                Update();
-            }
-            return storeStaffs;
-        }
-
-        [HttpPatch]
-        [Route("UpdatePhone")]
-        public Dictionary<string, StoreStaff> UpdatePhone(string id, string phone)
-        {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if (existingStaff == null)
-            {
-                return null;
-            }
-            else
-            {
-                storeStaffs.Remove(id);
-                existingStaff.UpdatePhone(phone);
-                storeStaffs.Add(id, existingStaff);
-                Update();
-            }
-            return storeStaffs;
-        }
-
-        [HttpPatch]
-        [Route("UpdateAddress")]
-        public Dictionary<string, StoreStaff> UpdateAddress(string id, string address)
-        {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if (existingStaff == null)
-            {
-                return null;
-            }
-            else
-            {
-                storeStaffs.Remove(id);
-                existingStaff.UpdateAddress(address);
-                storeStaffs.Add(id, existingStaff);
-                Update();
-            }
-            return storeStaffs;
-        }
-
-        [HttpPatch]
-        [Route("UpdateEmail")]
-        public Dictionary<string, StoreStaff> UpdateEmail(string id, string email)
-        {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if (existingStaff == null)
-            {
-                return null;
-            }
-            else
-            {
-                storeStaffs.Remove(id);
-                existingStaff.UpdateEmail(email);
-                storeStaffs.Add(id, existingStaff);
-                Update();
-            }
-            return storeStaffs;
-        }
-
-        [HttpDelete]
-        [Route("DeleteStaff/{id}")]
-        public Dictionary<string, StoreStaff> Delete(string id)
-        {
-            Initialize();
-            StoreStaff existingStaff = storeStaffs[id];
-            if (existingStaff != null)
-            {
-                storeStaffs.Remove(id);
-                Update();
-            }          
-            return storeStaffs;
+            return new User(storeUserDto.userID, storeUserDto.userPassword, storeUserDto.userName, storeUserDto.userPhone, storeUserDto.userAddress, storeUserDto.userEmail);
         }
     }
 }

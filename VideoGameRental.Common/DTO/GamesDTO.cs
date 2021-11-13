@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace VideoGameRentalStore
+﻿namespace VideoGameRental.Common.DTO
 {
-    public class Games
+    public class GamesDTO
     {
         public string gamesID { get; set; }
         public string gamesName { get; set; }
@@ -13,11 +9,7 @@ namespace VideoGameRentalStore
         public string rentedBy { get; set; }
         public string rentedDate { get; set; }
         public string returnByDate { get; set; }
-        public Games()
-        {
-     
-        }
-        public Games(string id, string name, string price, string status, string rent, string rd, string rbd)
+        public GamesDTO(string id, string name, string price, string status, string rent, string rd, string rbd)
         {
             gamesID = id;
             gamesName = name;
@@ -26,6 +18,6 @@ namespace VideoGameRentalStore
             rentedBy = rent;
             rentedDate = rd;
             returnByDate = rbd;
-        }       
+        }
     }
 }

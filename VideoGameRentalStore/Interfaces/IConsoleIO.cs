@@ -1,4 +1,4 @@
-﻿namespace VideoGameRentalStore
+﻿namespace VideoGameRentalStore.Interfaces
 {
     public interface IConsoleIO
     {

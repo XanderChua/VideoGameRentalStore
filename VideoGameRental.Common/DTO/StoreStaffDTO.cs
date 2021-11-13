@@ -1,11 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-
-namespace VideoGameRentalStore
+﻿namespace VideoGameRental.Common.DTO
 {
-    public class StoreStaff
+    public class StoreStaffDTO
     {
         public string staffID { get; set; }
         public string staffPassword { get; set; }
@@ -13,11 +8,7 @@ namespace VideoGameRentalStore
         public string staffPhone { get; set; }
         public string staffAddress { get; set; }
         public string staffEmail { get; set; }
-        public StoreStaff()
-        {
-
-        }
-        public StoreStaff(string id, string password, string name, string phone, string address, string email)
+        public StoreStaffDTO(string id, string password, string name, string phone, string address, string email)
         {
             staffID = id;
             staffPassword = password;
@@ -25,6 +16,6 @@ namespace VideoGameRentalStore
             staffPhone = phone;
             staffAddress = address;
             staffEmail = email;
-        }        
+        }
     }
 }
