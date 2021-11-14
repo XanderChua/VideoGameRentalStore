@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using VideoGameRental.Common.DTO;
 
 namespace VideoGameRentalStore.Interfaces
@@ -10,8 +9,8 @@ namespace VideoGameRentalStore.Interfaces
         void Initialize();
 
         //Authetication
-        ICollection<StoreStaffDTO> ValidateStaff(string inputID, string password);
-        ICollection<UserDTO> ValidateUser(string inputID, string password);
+        bool ValidateStaff(string inputID, string password);
+        bool ValidateUser(string inputID, string password);
 
         //Store Manager       
         StoreStaffDTO AddStaff(string inputStaffID, string inputStaffPassword, string inputStaffName, string inputStaffPhone, string inputStaffAddress, string inputStaffEmail);

@@ -1,4 +1,5 @@
 ﻿using System;
+using VideoGameRentalStore.Interfaces;
 
 namespace VideoGameRentalStore
 {

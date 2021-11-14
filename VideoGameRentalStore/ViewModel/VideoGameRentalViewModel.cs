@@ -20,17 +20,17 @@ namespace VideoGameRentalStore.ViewModel
             _httpClient.BaseAddress = new Uri(baselink);
         }
         //Authentication
-        public ICollection<StoreStaffDTO> ValidateStaff(string inputID, string password)
+        public bool ValidateStaff(string inputID, string password)
         {
             Task<string> responseBody;
-            var response = _httpClient.GetAsync($"{baselink}/Login");
+            var response = _httpClient.GetAsync($"{baselink}/VerifyStaff/Login");
             response.Wait();
             if (response.Result.IsSuccessStatusCode)
             {
                 Console.WriteLine("Staff login success!");
                 responseBody = response.Result.Content.ReadAsStringAsync();
                 responseBody.Wait();
-                return JsonConvert.DeserializeObject<ICollection<StoreStaffDTO>>(responseBody.Result);
+                return bool.Parse(responseBody.Result);
             }
             else
             {
@@ -39,17 +39,17 @@ namespace VideoGameRentalStore.ViewModel
             }
         }
 
-        public ICollection<UserDTO> ValidateUser(string inputID, string password)
+        public bool ValidateUser(string inputID, string password)
         {
             Task<string> responseBody;
-            var response = _httpClient.GetAsync($"{baselink}/Login");
+            var response = _httpClient.GetAsync($"{baselink}/VerifyUser/Login");
             response.Wait();
             if (response.Result.IsSuccessStatusCode)
             {
                 Console.WriteLine("User login success!");
                 responseBody = response.Result.Content.ReadAsStringAsync();
                 responseBody.Wait();
-                return JsonConvert.DeserializeObject<ICollection<UserDTO>>(responseBody.Result);
+                return bool.Parse(responseBody.Result);
             }
             else
             {
